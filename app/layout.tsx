@@ -37,7 +37,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="">
+          <main className="flex items-center justify-center">
               {children}
           </main>
         </ThemeProvider>
