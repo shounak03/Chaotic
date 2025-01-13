@@ -10,6 +10,7 @@ const config = {
   ],
   prefix: "",
   theme: {
+
     container: {
       center: true,
       padding: "2rem",
@@ -18,6 +19,9 @@ const config = {
       },
     },
     extend: {
+      backgroundImage: {
+        "custom-gradient-1": `linear-gradient(to left, #095a89, #006c98, #007fa6, #0091b1, #15a4bb, #13a2ba,  #11a1b8, #0f9fb7, #0089aa, #00739b, #005e89, #094976);`
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

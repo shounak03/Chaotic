@@ -1,11 +1,5 @@
-import DeployButton from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import HeaderAuth from "@/components/header-auth";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { hasEnvVars } from "@/utils/supabase/check-env-vars";
-import { Geist } from "next/font/google";
-import { ThemeProvider } from "next-themes";
-import Link from "next/link";
+
+import { Geist, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -17,7 +11,11 @@ export const metadata = {
   title: "Next.js and Supabase Starter Kit",
   description: "The fastest way to build apps with Next.js and Supabase",
 };
-
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  display: 'swap',
+  weight:"400"
+})
 const geistSans = Geist({
   display: "swap",
   subsets: ["latin"],
@@ -29,18 +27,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geistSans.className} suppressHydrationWarning>
-      <body className="bg-background text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <main className="flex items-center justify-center">
-              {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className={playfair.className}>
+        <div className=" min-h-screen bg-custom-gradient-1">
+
+          <main className="flex-grow p-20" >
+            {children}
           </main>
-        </ThemeProvider>
+
+
+        </div>
+        
+
       </body>
     </html>
   );
