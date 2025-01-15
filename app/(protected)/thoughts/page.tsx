@@ -1,95 +1,129 @@
-
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useEffect } from 'react'
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import TextStyle from '@tiptap/extension-text-style'
+import { Color } from '@tiptap/extension-color'
+import {Underline } from '@tiptap/extension-underline'
+import { FontSize } from '@tiptap/extension-font-size'
+import BulletList from '@tiptap/extension-bullet-list'
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Bold, Italic, Underline, List, ImageIcon, Plus, Type, Palette } from 'lucide-react'
+import { Bold, Italic,Underline as Underline2, List, ImageIcon, Type, Palette } from 'lucide-react'
 
 export default function ThoughtPage() {
-  const [cards, setCards] = useState([
-    { id: 1, content: '', color: 'bg-white' },
-    { id: 2, content: '', color: 'bg-white' },
-    { id: 3, content: '', color: 'bg-white' },
-  ])
+  const [content, setContent] = useState('')
   const [images, setImages] = useState<string[]>([])
-  const textAreaRef = useRef<HTMLTextAreaElement>(null)
+  const [canvasColor, setCanvasColor] = useState('rgb(255, 255, 255)')
+  const [fontSize, setFontSize] = useState('16px')
+  const [textColor, setTextColor] = useState('#000000')
 
-  const addCard = () => {
-    setCards([...cards, { id: Date.now(), content: '', color: 'bg-white' }])
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TextStyle,
+      Color,
+      FontSize,
+      Underline,
+      BulletList,
+    ],
+    content: content,
+    onUpdate: ({ editor }) => {
+      setContent(editor.getHTML())
+    },
+  })
+
+  useEffect(() => {
+    if (editor) {
+      editor.chain().focus().setColor(textColor).run()
+    }
+  }, [textColor, editor])
+
+  useEffect(() => {
+    if (editor) {
+      editor.chain().focus().setFontSize(fontSize).run()
+    }
+  }, [fontSize, editor])
+
+  const handleImageUpload = (file: File) => {
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImages([...images, reader.result as string])
+    }
+    reader.readAsDataURL(file)
   }
 
-  const updateCardContent = (id: number, content: string) => {
-    setCards(cards.map(card => card.id === id ? { ...card, content } : card))
-  }
-
-  const changeCardColor = (id: number, color: string) => {
-    setCards(cards.map(card => card.id === id ? { ...card, color } : card))
-  }
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImages([...images, reader.result as string])
+  const applyStyle = (style: string) => {
+    if (editor) {
+      switch (style) {
+        case 'bold':
+          editor.chain().focus().toggleBold().run()
+          break
+        case 'italic':
+          editor.chain().focus().toggleItalic().run()
+          break
+        case 'underline':
+          editor.chain().focus().toggleUnderline().run()
+          break
+        case 'bullet':
+          editor.chain().focus().toggleBulletList().run()
+          break
       }
-      reader.readAsDataURL(file)
     }
   }
 
-  const applyTextStyle = (style: string) => {
-    const textarea = textAreaRef.current
-    if (!textarea) return
+  const handleFontSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFontSize(e.target.value)
+  }
 
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = textarea.value.substring(start, end)
+  const handleTextColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTextColor(e.target.value)
+  }
 
-    let newText = ''
-    switch (style) {
-      case 'bold':
-        newText = `**${selectedText}**`
-        break
-      case 'italic':
-        newText = `*${selectedText}*`
-        break
-      case 'underline':
-        newText = `_${selectedText}_`
-        break
-      case 'list':
-        newText = selectedText.split('\n').map(line => `• ${line}`).join('\n')
-        break
-    }
-
-    const newContent = textarea.value.substring(0, start) + newText + textarea.value.substring(end)
-    const cardId = Number(textarea.getAttribute('data-card-id'))
-    updateCardContent(cardId, newContent)
+  const handleCanvasColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCanvasColor(e.target.value)
   }
 
   return (
-    <div className="container mx-auto px-4">
-      <h1 className="text-5xl font-bold font-playfair text-center my-12">Too much chaos? Let's organize it.</h1>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-5xl font-bold font-playfair text-center mb-8">Too much chaos? Let's organize it.</h1>
       
-      <div className="flex justify-center space-x-2 m-8  p-4 rounded-lg shadow-sm">
-        <Button variant="outline" size="icon" onClick={() => applyTextStyle('bold')}>
+      <div className="flex flex-wrap justify-center items-center gap-2 p-4  rounded-lg shadow-sm mb-4">
+        <Button  variant="outline" size="icon" onClick={() => applyStyle('bold')}>
           <Bold className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="icon" onClick={() => applyTextStyle('italic')}>
+        <Button variant="outline" size="icon" onClick={() => applyStyle('italic')}>
           <Italic className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="icon" onClick={() => applyTextStyle('underline')}>
-          <Underline className="h-4 w-4" />
+        <Button variant="outline" size="icon" onClick={() => applyStyle('underline')}>
+          <Underline2 className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="icon" onClick={() => applyTextStyle('list')}>
+        <Button variant="outline" size="icon" onClick={() => applyStyle('bullet')}>
           <List className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="icon">
-          <Type className="h-4 w-4" />
-        </Button>
-        
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Type className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-40">
+            <select
+              value={fontSize}
+              onChange={handleFontSizeChange}
+              className="w-full p-2 border rounded"
+            >
+              {[12, 14, 16, 18, 20, 24, 30, 36, 48].map(size => (
+                <option key={size} value={`${size}px`}>{size}px</option>
+              ))}
+            </select>
+          </PopoverContent>
+        </Popover>
+
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="icon">
@@ -97,13 +131,19 @@ export default function ThoughtPage() {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-40">
-            <div className="flex flex-wrap gap-1">
-              {['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'].map(color => (
-                <Button
-                  key={color}
-                  className={`w-8 h-8 rounded-full ${color}`}
-                />
-              ))}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Text Color</label>
+              <Input
+                type="color"
+                value={textColor}
+                onChange={handleTextColorChange}
+              />
+              <label className="text-sm font-medium">Canvas Color</label>
+              <Input
+                type="color"
+                value={canvasColor}
+                onChange={handleCanvasColorChange}
+              />
             </div>
           </PopoverContent>
         </Popover>
@@ -118,54 +158,33 @@ export default function ThoughtPage() {
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={handleImageUpload}
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleImageUpload(file)
+          }}
         />
-
-        <Button onClick={addCard}>
-          <Plus className="h-4 w-4" />
-        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {cards.map(card => (
-          <Card key={card.id} className={`p-4 ${card.color}`}>
-            <textarea
-              ref={textAreaRef}
-              data-card-id={card.id}
-              className="w-full h-32 resize-none bg-transparent focus:outline-none"
-              value={card.content}
-              onChange={(e) => updateCardContent(card.id, e.target.value)}
-              placeholder="Write your thoughts here..."
-            />
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="mt-2">
-                  <Palette className="h-4 w-4 mr-2" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-40">
-                <div className="flex flex-wrap gap-1">
-                  {['bg-white', 'bg-red-200', 'bg-blue-200', 'bg-green-200', 'bg-yellow-200', 'bg-purple-200'].map(color => (
-                    <Button
-                      key={color}
-                      className={`w-8 h-8 rounded-full ${color}`}
-                      onClick={() => changeCardColor(card.id, color)}
-                    />
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </Card>
-        ))}
-      </div>
+      <Card 
+        className="mt-4 p-4 overflow-auto"
+        style={{ 
+          backgroundColor: canvasColor,
+          minHeight: 'calc(100vh - 300px)',
+          maxHeight: 'calc(100vh - 300px)'
+        }}
+      >
+        <EditorContent editor={editor} />
+        {/* // className="min-h-[200px] focus:outline-none" /> */}
 
-      {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((image, index) => (
-            <img key={index} src={image} alt={`Uploaded image ${index + 1}`} className="w-full h-48 object-cover rounded-lg" />
-          ))}
-        </div>
-      )}
+        {images.length > 0 && (
+          <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {images.map((image, index) => (
+              <img key={index} src={image || "/placeholder.svg"} alt={`Uploaded image ${index + 1}`} className="w-full h-48 object-cover rounded-lg" />
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   )
 }
+
